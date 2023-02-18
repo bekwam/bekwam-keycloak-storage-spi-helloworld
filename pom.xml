@@ -11,7 +11,7 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <keycloak.version>18.0.0</keycloak.version>
+        <keycloak.version>20.0.3</keycloak.version>
         <jboss-logging.version>3.5.0.Final</jboss-logging.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <guava.version>31.1-jre</guava.version>
@@ -95,6 +95,12 @@
             <version>${mockito-core.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-model-legacy</artifactId>
+            <version>${keycloak.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -111,7 +117,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
+                <version>3.0.0-M9</version>
             </plugin>
         </plugins>
     </build>

@@ -16,10 +16,10 @@ import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.adapter.AbstractUserAdapterFederatedStorage;
 import org.keycloak.storage.user.UserLookupProvider;
 import org.keycloak.storage.user.UserQueryProvider;
+import org.keycloak.storage.user.UserRegistrationProvider;
 
 import java.sql.Timestamp;
-import java.time.ZonedDateTime;
-import java.time.temporal.TemporalField;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,9 +40,10 @@ public class MemoryUserStorageProvider implements
         UserLookupProvider,
         CredentialInputValidator,
         CredentialInputUpdater,
-        UserQueryProvider.Streams {
+        UserQueryProvider.Streams,
+        UserRegistrationProvider {
 
-    private static final Logger logger = Logger.getLogger(MemoryUserStorageProvider.class);
+    private static final Logger LOGGER = Logger.getLogger(MemoryUserStorageProvider.class);
 
     protected final KeycloakSession keycloakSession;
     protected final ComponentModel componentModel;
@@ -54,16 +55,16 @@ public class MemoryUserStorageProvider implements
             String email,
             String firstName,
             String lastName,
-            ZonedDateTime createdDate
+            OffsetDateTime createdDate
     ) {}
 
     /**
      * List of users that will appear in the Users screen
      */
     private final List<CustomUser> ramUsers = List.of(
-            new CustomUser("user1", "password1", "user1@example.com", "George", "Washington", ZonedDateTime.parse("2023-01-01T12:00:00.000+05:00")),
-            new CustomUser("user2", "password2", "user2@example.com", "Abraham", "Lincoln", ZonedDateTime.parse("2023-01-15T13:00:00.000+05:00")),
-            new CustomUser("user3", "password3", "user3@example.com", "Franklin", "Roosevelt", ZonedDateTime.parse("2023-02-02T09:00:00.000+05:00"))
+            new CustomUser("user1", "password1", "user1@example.com", "George", "Washington", OffsetDateTime.parse("2023-01-01T12:00:00.000+05:00")),
+            new CustomUser("user2", "password2", "user2@example.com", "Abraham", "Lincoln", OffsetDateTime.parse("2023-01-15T13:00:00.000+05:00")),
+            new CustomUser("user3", "password3", "user3@example.com", "Franklin", "Roosevelt", OffsetDateTime.parse("2023-02-02T09:00:00.000+05:00"))
     );
 
 
@@ -160,14 +161,14 @@ public class MemoryUserStorageProvider implements
      * @return
      */
     public boolean isValid(RealmModel realmModel, UserModel userModel, CredentialInput credentialInput) {
-        logger.trace("MemoryUserStorageProvider.isValid()");
+        LOGGER.trace("MemoryUserStorageProvider.isValid()");
         if( credentialInput.getType().equals(PasswordCredentialModel.TYPE)) {
             Optional<CustomUser> user = findUserInRAMStore(userModel.getUsername());
             if( user.isPresent() ) {
-                logger.debug("found user=" + user.get().username() + "; checking password");
+                LOGGER.debug("found user=" + user.get().username() + "; checking password");
                 return user.get().password().equals(credentialInput.getChallengeResponse());
             }
-            logger.debug("did not find user=" + user.get().username());
+            LOGGER.debug("did not find user=" + user.get().username());
             return false;
         } else {
             throw new UnsupportedOperationException("only credential type '" + PasswordCredentialModel.TYPE +"' is supported");
@@ -194,25 +195,25 @@ public class MemoryUserStorageProvider implements
     }
 
     public Stream<UserModel> searchForUserStream(RealmModel realm, String search) {
-        logger.trace("searchForUserStream() #1");
+        LOGGER.trace("searchForUserStream() #1");
         return UserQueryProvider.Streams.super.searchForUserStream(realm, search);
     }
 
     public Stream<UserModel> searchForUserStream(RealmModel realmModel, String search, Integer firstResult, Integer maxResults) {
-        logger.trace("searchForUserStream() #2; search=" + search);
+        LOGGER.trace("searchForUserStream() #2; search=" + search);
         return ramUsers
                 .stream()
                 .map( u -> userModel(realmModel, u));
     }
 
     public Stream<UserModel> searchForUserStream(RealmModel realm, Map<String, String> params) {
-        logger.trace("searchForUserStream() #3");
+        LOGGER.trace("searchForUserStream() #3");
         // this method needs to exist for paging
         return this.searchForUserStream(realm, "", 0, Integer.MAX_VALUE);
     }
 
     public Stream<UserModel> searchForUserStream(RealmModel realmModel, Map<String, String> params, Integer firstResult, Integer maxResults) {
-        logger.trace("searchForUserStream() #4; params=" + params);
+        LOGGER.trace("searchForUserStream() #4; params=" + params);
         return this.searchForUserStream(realmModel, "", firstResult, maxResults);
     }
 
@@ -239,7 +240,7 @@ public class MemoryUserStorageProvider implements
 
     @Override
     public UserModel getUserById(RealmModel realmModel, String id) {
-        logger.trace("getUserById(), id=" + id);
+        LOGGER.trace("getUserById(), id=" + id);
         StorageId storageId = new StorageId(id);
         String username = storageId.getExternalId();
         return getUserByUsername(realmModel, username);
@@ -261,5 +262,19 @@ public class MemoryUserStorageProvider implements
                 )
                 .findFirst();
 
+    }
+
+    @Override
+    public UserModel addUser(RealmModel realmModel, String usernames) {
+        LOGGER.trace("addUser()");
+        // not supported by immutable list
+        return null;
+    }
+
+    @Override
+    public boolean removeUser(RealmModel realmModel, UserModel userModel) {
+        LOGGER.trace("removeUser()");
+        // not supported by immutable list
+        return false;
     }
 }

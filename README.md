@@ -9,6 +9,6 @@ You'll see the new provider in the Server Info and the User Federation pages.
 
 To trace through the code with logging using the following command.
 
-    $ bin/kc start-dev --log-level=org.bekwam:TRACE
+    $ bin/kc.sh start-dev --log-level=org.bekwam:TRACE
     
 If you're creating a new User Storage SPI for the latest Keycloak, be sure to read this link about the new storage SPI "Map Storage SPI": [changes](https://www.keycloak.org/docs/latest/upgrading/#changes-affecting-developers).
